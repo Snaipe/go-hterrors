@@ -134,7 +134,9 @@ func Check(resp *http.Response, err error) (*http.Response, error) {
 		err = CheckStatus(resp)
 	}
 	if err != nil {
-		_ = resp.Body.Close()
+		if resp != nil && resp.Body != nil {
+			_ = resp.Body.Close()
+		}
 		return nil, err
 	}
 	return resp, nil
