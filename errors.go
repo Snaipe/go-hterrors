@@ -77,13 +77,13 @@ func extractMessage(resp *http.Response) string {
 			return fmt.Sprintf("<invalid json in response body: %v>", err)
 		}
 
-		keys := make([]string, len(doc), 0)
+		keys := make([]string, 0, len(doc))
 		for k := range doc {
 			keys = append(keys, k)
 		}
 		sort.Strings(keys)
 
-		fields := make([]string, len(doc), 0)
+		fields := make([]string, 0, len(doc))
 		for _, k := range keys {
 			fields = append(fields, fmt.Sprintf("%s: %v", k, doc[k]))
 		}
