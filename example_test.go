@@ -7,7 +7,7 @@ import (
 	"snai.pe/go-hterrors"
 )
 
-func ExampleCheckRequest_1() {
+func ExampleCheck() {
 	resp, err := hterrors.Check(http.Get("http://google.com"))
 	if err != nil {
 		fmt.Println(err)
@@ -18,7 +18,7 @@ func ExampleCheckRequest_1() {
 	// Output: OK
 }
 
-func ExampleCheckRequest_2() {
+func ExampleCheck_notfound() {
 	resp, err := hterrors.Check(http.Get("http://google.com/invalid"))
 	if err != nil {
 		fmt.Println(err)
