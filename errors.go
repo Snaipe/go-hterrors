@@ -30,10 +30,14 @@ func (err *StatusError) Error() string {
 	code := fmt.Sprintf("%d", err.StatusCode)
 	text := http.StatusText(err.StatusCode)
 
-	if strings.Contains(err.Message, code) && strings.Contains(err.Message, text) {
+	switch {
+	case strings.Contains(err.Message, code) && strings.Contains(err.Message, text):
 		return err.Message
+	case err.Message == "":
+		return fmt.Sprintf("%s %s", code, text)
+	default:
+		return fmt.Sprintf("%s %s: %s", code, text, err.Message)
 	}
-	return fmt.Sprintf("%s %s: %s", code, text, err.Message)
 }
 
 var (
