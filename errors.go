@@ -103,19 +103,20 @@ func CheckStatus(resp *http.Response) error {
 	}
 
 	msg := extractMessage(resp)
-	//if prefix := fmt.Sprintf("%d %s", err.StatusCode, http.StatusText(err.StatusCode)); strings.HasPrefix(msg, prefix) {
-	//} else if prefix := fmt.Sprintf("%d %s", err.StatusCode, http.StatusText(err.StatusCode)); strings.HasPrefix(msg, prefix) {
-	//}
-	//	fallthrough
-	//case msg == fmt.Sprintf("%s", http.StatusText(err.StatusCode))
-	//	msg = 
-	//}
-	//if msg == fmt.Sprintf("%d %s")
+	err := &StatusError{StatusCode: resp.StatusCode, Message: msg}
+
+	if resp.Request == nil {
+		return &url.Error{
+			Op:  "<unknown method>",
+			URL: "<unknown request>",
+			Err: err,
+		}
+	}
 
 	return &url.Error{
 		Op:  resp.Request.Method,
 		URL: resp.Request.URL.String(),
-		Err: &StatusError{StatusCode: resp.StatusCode, Message: msg},
+		Err: err,
 	}
 }
 
