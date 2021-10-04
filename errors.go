@@ -1,4 +1,4 @@
-// Copyright 2020, Franklin "Snaipe" Mathieu <me@snai.pe>
+// Copyright 2020 - 2021, Franklin "Snaipe" Mathieu <me@snai.pe>
 //
 // Use of this source-code is govered by the MIT license, which
 // can be found in the LICENSE file.
@@ -24,6 +24,17 @@ import (
 type StatusError struct {
 	StatusCode int
 	Message    string
+}
+
+// ResponseChecker represents a function that accepts or rejects a response
+// based off some criteria. If rejected, the response is considered failed
+// by the CheckReponse function below and and error is returned.
+type ResponseChecker func(*http.Response) bool
+
+// DefaultResponseChecker is the default ResponseChecker. It returns true
+// if the status is 2xx.
+func DefaultResponseChecker(resp *http.Response) bool {
+	return resp.StatusCode >= 200 && resp.StatusCode < 300
 }
 
 func (err *StatusError) Error() string {
@@ -98,11 +109,11 @@ func extractMessage(resp *http.Response) string {
 	}
 }
 
-// CheckStatus returns an error if the status code of the specified response
-// is not in the 2xx family. The returned error contains a digested version
-// of the response body, and the reponse body is consumed.
-func CheckStatus(resp *http.Response) error {
-	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
+// CheckResponse returns an error if the response is rejected by
+// the specified response checker. The returned error contains a digested
+// version of the response body, and the response body is consumed.
+func CheckResponse(resp *http.Response, checker ResponseChecker) error {
+	if checker(resp) {
 		return nil
 	}
 
@@ -122,6 +133,31 @@ func CheckStatus(resp *http.Response) error {
 		URL: resp.Request.URL.String(),
 		Err: err,
 	}
+}
+
+// CheckStatus returns an error if the status code of the specified response
+// is not in the 2xx family. The returned error contains a digested version
+// of the response body, and the reponse body is consumed.
+//
+// It is a convenience wrapper over CheckResponse(resp, DefaultResponseChecker).
+func CheckStatus(resp *http.Response) error {
+	return CheckResponse(resp, DefaultResponseChecker)
+}
+
+// CheckStatusOneOf returns an error if the status code of the specified
+// response is not one of the expected statuses passed to this function.
+// The returned error contains a digested version  of the response body,
+// and the reponse body is consumed.
+func CheckStatusOneOf(resp *http.Response, expectedStatuses ...int) error {
+	checker := func(resp *http.Response) bool {
+		for _, status := range expectedStatuses {
+			if status == resp.StatusCode {
+				return true
+			}
+		}
+		return false
+	}
+	return CheckResponse(resp, checker)
 }
 
 // Check is a convenience wrapper over CheckStatus -- if the passed error is
